@@ -511,7 +511,7 @@ func (c *client) Status(ctx context.Context, containerID string) (containerd.Pro
 	return s.Status, nil
 }
 
-func (c *client) getCheckpointOptions(id string, exit bool) containerd.CheckpointTaskOpts {
+func (c *client) getCheckpointOptions(id string, parentPath, criuPageServer string, exit, openTcp, unixSockets, terminal, fileLocks bool) containerd.CheckpointTaskOpts {
 	return func(r *containerd.CheckpointTaskInfo) error {
 		if r.Options == nil {
 			c.v2runcoptionsMu.Lock()
@@ -528,22 +528,34 @@ func (c *client) getCheckpointOptions(id string, exit bool) containerd.Checkpoin
 
 		switch opts := r.Options.(type) {
 		case *v2runcoptions.CheckpointOptions:
+			opts.ParentPath = parentPath
+			opts.CriuPageServer = criuPageServer
 			opts.Exit = exit
+			opts.OpenTcp = openTcp
+			opts.ExternalUnixSockets = unixSockets
+			opts.Terminal = terminal
+			opts.FileLocks = fileLocks
 		case *runctypes.CheckpointOptions:
+			opts.ParentPath = parentPath
+			opts.CriuPageServer = criuPageServer
 			opts.Exit = exit
+			opts.OpenTcp = openTcp
+			opts.ExternalUnixSockets = unixSockets
+			opts.Terminal = terminal
+			opts.FileLocks = fileLocks
 		}
 
 		return nil
 	}
 }
 
-func (c *client) CreateCheckpoint(ctx context.Context, containerID, checkpointDir string, exit bool) error {
+func (c *client) CreateCheckpoint(ctx context.Context, containerID, checkpointDir, parentPath, criuPageServer string, exit, openTcp, unixSockets, terminal, fileLocks bool) error {
 	p, err := c.getProcess(ctx, containerID, libcontainerdtypes.InitProcessName)
 	if err != nil {
 		return err
 	}
 
-	opts := []containerd.CheckpointTaskOpts{c.getCheckpointOptions(containerID, exit)}
+	opts := []containerd.CheckpointTaskOpts{c.getCheckpointOptions(containerID, parentPath, criuPageServer, exit, openTcp, unixSockets, terminal, fileLocks)}
 	img, err := p.(containerd.Task).Checkpoint(ctx, opts...)
 	if err != nil {
 		return wrapError(err)
