@@ -18,6 +18,7 @@ package containerd
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"syscall"
 	"time"
@@ -25,7 +26,6 @@ import (
 	"github.com/containerd/containerd/api/services/tasks/v1"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/errdefs"
-	"github.com/pkg/errors"
 )
 
 // Process represents a system process
@@ -35,7 +35,7 @@ type Process interface {
 	// Pid is the system specific process id
 	Pid() uint32
 	// Start starts the process executing the user's defined binary
-	Start(context.Context) error
+	Start(context.Context, string, bool, bool, bool) error
 	// Delete removes the process and any resources allocated returning the exit status
 	Delete(context.Context, ...ProcessDeleteOpts) (*ExitStatus, error)
 	// Kill sends the provided signal to the process
@@ -114,10 +114,14 @@ func (p *process) Pid() uint32 {
 }
 
 // Start starts the exec process
-func (p *process) Start(ctx context.Context) error {
+func (p *process) Start(ctx context.Context, checkpointDir string, openTcp, terminal, fileLocks bool) error {
 	r, err := p.task.client.TaskService().Start(ctx, &tasks.StartRequest{
-		ContainerID: p.task.id,
-		ExecID:      p.id,
+		ContainerID:   p.task.id,
+		ExecID:        p.id,
+		CheckpointDir: checkpointDir,
+		OpenTcp:       openTcp,
+		Terminal:      terminal,
+		FileLocks:     fileLocks,
 	})
 	if err != nil {
 		if p.io != nil {
@@ -210,7 +214,7 @@ func (p *process) Delete(ctx context.Context, opts ...ProcessDeleteOpts) (*ExitS
 	}
 	switch status.Status {
 	case Running, Paused, Pausing:
-		return nil, errors.Wrapf(errdefs.ErrFailedPrecondition, "process must be stopped before deletion")
+		return nil, fmt.Errorf("current process state: %s, process must be stopped before deletion: %w", status.Status, errdefs.ErrFailedPrecondition)
 	}
 	r, err := p.task.client.TaskService().DeleteProcess(ctx, &tasks.DeleteProcessRequest{
 		ContainerID: p.task.id,

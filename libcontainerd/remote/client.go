@@ -251,7 +251,7 @@ func (c *client) Start(ctx context.Context, id, checkpointDir string, withStdin 
 	// Signal c.createIO that it can call CloseIO
 	close(stdinCloseSync)
 
-	if err := t.Start(ctx); err != nil {
+	if err := t.Start(ctx, "", false, false, false); err != nil {
 		if _, err := t.Delete(ctx); err != nil {
 			c.logger.WithError(err).WithField("container", id).
 				Error("failed to delete task after fail start")
@@ -321,7 +321,7 @@ func (c *client) Exec(ctx context.Context, containerID, processID string, spec *
 	// the stdin of exec process will be created after p.Start in containerd
 	defer close(stdinCloseSync)
 
-	if err = p.Start(ctx); err != nil {
+	if err = p.Start(ctx, "", false, false, false); err != nil {
 		// use new context for cleanup because old one may be cancelled by user, but leave a timeout to make sure
 		// we are not waiting forever if containerd is unresponsive or to work around fifo cancelling issues in
 		// older containerd-shim
