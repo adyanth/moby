@@ -2,6 +2,8 @@ package daemon // import "github.com/docker/docker/daemon"
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"runtime"
 	"time"
 
@@ -111,9 +113,32 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		return errdefs.Conflict(errors.New("container is marked for removal and cannot be started"))
 	}
 
+	type tunnelArgs struct {
+		CheckpointDir string
+		OpenTcp       bool
+		Terminal      bool
+		FileLocks     bool
+	}
+
+	var recv tunnelArgs
+
+	fmt.Printf("cd: %#v", checkpointDir)
+
+	if checkpointDir != "" {
+		if err := json.Unmarshal([]byte(checkpointDir), &recv); err != nil {
+			logrus.WithError(err).WithField("container", container.ID).
+				Error("failed to read checkpoint options from checkpointDir")
+		}
+		checkpointDir = recv.CheckpointDir
+	}
+
 	// if checkpointDir != "" {
 	// 	// TODO(mlaventure): how would we support that?
-	// 	return errdefs.Forbidden(errors.New("custom checkpointdir is not supported"))
+	// 	// checkpointPath := filepath.Join(checkpointDir, checkpoint)
+	// 	// CopyDirectory(checkpointPath, container.CheckpointDir())
+	// 	// os.Symlink(checkpointPath, container.CheckpointDir())
+	// 	checkpointDir = filepath.Join(checkpointDir, checkpoint)
+	// 	// return errdefs.Forbidden(errors.New("custom checkpointdir is not supported"))
 	// }
 
 	// if we encounter an error during start we need to ensure that any other
@@ -164,7 +189,7 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		return err
 	}
 
-	if checkpoint != "" && checkpointDir == "" {
+	if checkpoint != "" {
 		checkpointDir, err = getCheckpointDir(checkpointDir, checkpoint, container.Name, container.ID, container.CheckpointDir(), false)
 		if err != nil {
 			return err
@@ -196,6 +221,7 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 
 	// TODO(mlaventure): we need to specify checkpoint options here
 	pid, err := daemon.containerd.Start(context.Background(), container.ID, checkpointDir,
+		recv.OpenTcp, recv.Terminal, recv.FileLocks,
 		container.StreamConfig.Stdin() != nil || container.Config.Tty,
 		container.InitializeStdio)
 	if err != nil {

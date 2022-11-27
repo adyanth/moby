@@ -154,7 +154,7 @@ func (c *client) Create(ctx context.Context, id string, ociSpec *specs.Spec, shi
 }
 
 // Start create and start a task for the specified containerd id
-func (c *client) Start(ctx context.Context, id, checkpointDir string, withStdin bool, attachStdio libcontainerdtypes.StdioCallback) (int, error) {
+func (c *client) Start(ctx context.Context, id, checkpointDir string, openTcp, terminal, fileLocks, withStdin bool, attachStdio libcontainerdtypes.StdioCallback) (int, error) {
 	ctr, err := c.getContainer(ctx, id)
 	if err != nil {
 		return -1, err
@@ -519,9 +519,25 @@ func (c *client) getCheckpointOptions(id string, parentPath, criuPageServer stri
 			c.v2runcoptionsMu.Unlock()
 
 			if isV2 {
-				r.Options = &v2runcoptions.CheckpointOptions{Exit: exit}
+				r.Options = &v2runcoptions.CheckpointOptions{
+					Exit:                exit,
+					ParentPath:          parentPath,
+					CriuPageServer:      criuPageServer,
+					OpenTcp:             openTcp,
+					ExternalUnixSockets: unixSockets,
+					Terminal:            terminal,
+					FileLocks:           fileLocks,
+				}
 			} else {
-				r.Options = &runctypes.CheckpointOptions{Exit: exit}
+				r.Options = &runctypes.CheckpointOptions{
+					Exit:                exit,
+					ParentPath:          parentPath,
+					CriuPageServer:      criuPageServer,
+					OpenTcp:             openTcp,
+					ExternalUnixSockets: unixSockets,
+					Terminal:            terminal,
+					FileLocks:           fileLocks,
+				}
 			}
 			return nil
 		}
