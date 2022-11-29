@@ -50,9 +50,7 @@ message CheckpointOptions {
 	string image_path = 8;
 	// checkpoint work path
 	string work_path = 9;
-	// checkpoint parent path
 	string parent_path = 10;
-	// checkpoint destination page server
 	string criu_page_server = 11;
 }
 

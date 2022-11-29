@@ -47,8 +47,6 @@ type Options struct {
 	CriuImagePath string `protobuf:"bytes,10,opt,name=criu_image_path,json=criuImagePath,proto3" json:"criu_image_path,omitempty"`
 	// criu work path
 	CriuWorkPath         string   `protobuf:"bytes,11,opt,name=criu_work_path,json=criuWorkPath,proto3" json:"criu_work_path,omitempty"`
-	ParentPath           string   `protobuf:"bytes,10,opt,name=parent_path,json=parentPath,proto3" json:"parent_path,omitempty"`
-	CriuPageServer       string   `protobuf:"bytes,11,opt,name=criu_page_server,json=criuPageServer,proto3" json:"criu_page_server,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -105,9 +103,7 @@ type CheckpointOptions struct {
 	ImagePath string `protobuf:"bytes,8,opt,name=image_path,json=imagePath,proto3" json:"image_path,omitempty"`
 	// checkpoint work path
 	WorkPath             string   `protobuf:"bytes,9,opt,name=work_path,json=workPath,proto3" json:"work_path,omitempty"`
-	// checkpoint parent path
 	ParentPath           string   `protobuf:"bytes,10,opt,name=parent_path,json=parentPath,proto3" json:"parent_path,omitempty"`
-	// checkpoint destination page server
 	CriuPageServer       string   `protobuf:"bytes,11,opt,name=criu_page_server,json=criuPageServer,proto3" json:"criu_page_server,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -263,20 +259,6 @@ func (m *Options) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.CriuPageServer) > 0 {
-		i -= len(m.CriuPageServer)
-		copy(dAtA[i:], m.CriuPageServer)
-		i = encodeVarintOci(dAtA, i, uint64(len(m.CriuPageServer)))
-		i--
-		dAtA[i] = 0x5a
-	}
-	if len(m.ParentPath) > 0 {
-		i -= len(m.ParentPath)
-		copy(dAtA[i:], m.ParentPath)
-		i = encodeVarintOci(dAtA, i, uint64(len(m.ParentPath)))
-		i--
-		dAtA[i] = 0x52
-	}
 	if len(m.CriuWorkPath) > 0 {
 		i -= len(m.CriuWorkPath)
 		copy(dAtA[i:], m.CriuWorkPath)
@@ -385,6 +367,20 @@ func (m *CheckpointOptions) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.CriuPageServer) > 0 {
+		i -= len(m.CriuPageServer)
+		copy(dAtA[i:], m.CriuPageServer)
+		i = encodeVarintOci(dAtA, i, uint64(len(m.CriuPageServer)))
+		i--
+		dAtA[i] = 0x5a
+	}
+	if len(m.ParentPath) > 0 {
+		i -= len(m.ParentPath)
+		copy(dAtA[i:], m.ParentPath)
+		i = encodeVarintOci(dAtA, i, uint64(len(m.ParentPath)))
+		i--
+		dAtA[i] = 0x52
 	}
 	if len(m.WorkPath) > 0 {
 		i -= len(m.WorkPath)
@@ -612,7 +608,6 @@ func (m *CheckpointOptions) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovOci(uint64(l))
 	}
-
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -1027,10 +1022,7 @@ func (m *Options) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthOci
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthOci
 			}
 			if (iNdEx + skippy) > l {
@@ -1373,10 +1365,7 @@ func (m *CheckpointOptions) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthOci
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthOci
 			}
 			if (iNdEx + skippy) > l {
@@ -1459,10 +1448,7 @@ func (m *ProcessDetails) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthOci
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthOci
 			}
 			if (iNdEx + skippy) > l {
