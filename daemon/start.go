@@ -128,8 +128,9 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		if err := json.Unmarshal([]byte(checkpointDir), &recv); err != nil {
 			logrus.WithError(err).WithField("container", container.ID).
 				Error("failed to read checkpoint options from checkpointDir")
+		} else {
+			checkpointDir = recv.CheckpointDir
 		}
-		checkpointDir = recv.CheckpointDir
 	}
 
 	// if checkpointDir != "" {
