@@ -251,7 +251,7 @@ func (c *client) Start(ctx context.Context, id, checkpointDir string, openTcp, t
 	// Signal c.createIO that it can call CloseIO
 	close(stdinCloseSync)
 
-	if err := t.Start(ctx, "", false, false, false); err != nil {
+	if err := t.Start(ctx, checkpointDir, openTcp, terminal, fileLocks); err != nil {
 		if _, err := t.Delete(ctx); err != nil {
 			c.logger.WithError(err).WithField("container", id).
 				Error("failed to delete task after fail start")
